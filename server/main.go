@@ -6,7 +6,8 @@ import (
 	"net"
 
 	"google.golang.org/grpc"
-	pb "../pd"
+	helloworldpb "../pd/helloworld"
+	hipb "../pd/hi"
 )
 
 const (
@@ -17,9 +18,15 @@ const (
 type server struct{}
 
 // SayHello implements helloworld.HelloServiceServer
-func (s *server) SayHello(ctx context.Context, in *pb.HelloRequest) (*pb.HelloReply, error) {
+func (s *server) SayHello(ctx context.Context, in *helloworldpb.HelloRequest) (*helloworldpb.HelloReply, error) {
 	log.Printf("Received: %v", in.Name)
-	return &pb.HelloReply{Message: "Hello " + in.Name}, nil
+	return &helloworldpb.HelloReply{Message: "Hello " + in.Name}, nil
+}
+
+// SayHi implements hi.HiServiceServer
+func (s *server) SayHi(ctx context.Context, in *hipb.HiRequest) (*hipb.HiReply, error) {
+	log.Printf("Received: %v", in.Name)
+	return &hipb.HiReply{Message: "Hi " + in.Name}, nil
 }
 
 func main() {
@@ -28,7 +35,8 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	pb.RegisterHelloServiceServer(s, &server{})
+	helloworldpb.RegisterHelloServiceServer(s, &server{})
+	hipb.RegisterHiServiceServer(s, &server{})
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
