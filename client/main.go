@@ -7,8 +7,9 @@ import (
 	"time"
 
 	"google.golang.org/grpc"
-	helloworldpb "../pd/helloworld"
-	hipb "../pd/hi"
+	helloworldPB "../pb/helloworld"
+	hiPB "../pb/hi"
+	crawlerPB "../pb/crawler"
 )
 
 const (
@@ -16,26 +17,37 @@ const (
 	defaultName = "world"
 )
 
-func sendHello(helloworldC helloworldpb.HelloServiceClient, name string) {
+func sendHello(helloworldConn helloworldPB.HelloServiceClient, name string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	r, err := helloworldC.SayHello(ctx, &helloworldpb.HelloRequest{Name: name})
+	r, err := helloworldConn.SayHello(ctx, &helloworldPB.HelloRequest{Name: name})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
 	log.Printf("HelloService: %s", r.Message)
 }
 
-func sendHi(hiC hipb.HiServiceClient, name string) {
+func sendHi(hiConn hiPB.HiServiceClient, name string) {
 	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
 	defer cancel()
 
-	r, err := hiC.SayHi(ctx, &hipb.HiRequest{Name: name})
+	r, err := hiConn.SayHi(ctx, &hiPB.HiRequest{Name: name})
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
 	log.Printf("HiService: %s", r.Message)
+}
+
+func getWeather(crawlerConn crawlerPB.CrawlerServiceClient, url string) {
+	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
+	defer cancel()
+
+	r, err := crawlerConn.GetWeather(ctx, &crawlerPB.WeatherRequest{Url: url})
+	if err != nil {
+		log.Fatalf("could not greet: %v", err)
+	}
+	log.Printf("CrawlerService: %s", r.Message)
 }
 
 func main() {
@@ -45,8 +57,9 @@ func main() {
 		log.Fatalf("did not connect: %v", err)
 	}
 	defer conn.Close()
-	helloworldC := helloworldpb.NewHelloServiceClient(conn)
-	hiC := hipb.NewHiServiceClient(conn)
+	helloworldConn := helloworldPB.NewHelloServiceClient(conn)
+	hiConn := hiPB.NewHiServiceClient(conn)
+	crawlerConn := crawlerPB.NewCrawlerServiceClient(conn)
 
 	// Contact the server and print out its response.
 	name := defaultName
@@ -54,6 +67,7 @@ func main() {
 		name = os.Args[1]
 	}
 	
-	sendHello(helloworldC, name)
-	sendHi(hiC, name)
+	sendHello(helloworldConn, name)
+	sendHi(hiConn, name)
+	getWeather(crawlerConn, "https://www.cwb.gov.tw/V7/forecast/taiwan/inc/city/Taichung_City.htm")
 }

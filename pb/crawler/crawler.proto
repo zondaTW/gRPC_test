@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package crawler;
+
+service CrawlerService {
+  rpc GetWeather (WeatherRequest) returns (WeatherReply) {}
+}
+
+message WeatherRequest {
+  string url = 1;
+}
+
+message WeatherReply {
+  string message = 1;
+}

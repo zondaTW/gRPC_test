@@ -1,13 +1,17 @@
 package main
 
 import (
+	"fmt"
 	"context"
 	"log"
 	"net"
 
 	"google.golang.org/grpc"
-	helloworldpb "../pd/helloworld"
-	hipb "../pd/hi"
+
+	helloworldPB "../pb/helloworld"
+	hiPB "../pb/hi"
+	crawlerPB "../pb/crawler"
+	weather "./crawler/weather"
 )
 
 const (
@@ -18,15 +22,23 @@ const (
 type server struct{}
 
 // SayHello implements helloworld.HelloServiceServer
-func (s *server) SayHello(ctx context.Context, in *helloworldpb.HelloRequest) (*helloworldpb.HelloReply, error) {
+func (s *server) SayHello(ctx context.Context, in *helloworldPB.HelloRequest) (*helloworldPB.HelloReply, error) {
 	log.Printf("Received: %v", in.Name)
-	return &helloworldpb.HelloReply{Message: "Hello " + in.Name}, nil
+	return &helloworldPB.HelloReply{Message: "Hello " + in.Name}, nil
 }
 
 // SayHi implements hi.HiServiceServer
-func (s *server) SayHi(ctx context.Context, in *hipb.HiRequest) (*hipb.HiReply, error) {
+func (s *server) SayHi(ctx context.Context, in *hiPB.HiRequest) (*hiPB.HiReply, error) {
 	log.Printf("Received: %v", in.Name)
-	return &hipb.HiReply{Message: "Hi " + in.Name}, nil
+	return &hiPB.HiReply{Message: "Hi " + in.Name}, nil
+}
+
+func (s *server) GetWeather(ctx context.Context, in *crawlerPB.WeatherRequest) (*crawlerPB.WeatherReply, error) {
+	log.Printf("Received: %v", in.Url)
+	weatherInfoArray := weather.GetWeatherInfo(in.Url)
+	fmt.Printf("Weather Info: %d\n", len(weatherInfoArray))
+	fmt.Println(weatherInfoArray)
+	return &crawlerPB.WeatherReply{Message: "URL: " + in.Url}, nil
 }
 
 func main() {
@@ -35,8 +47,9 @@ func main() {
 		log.Fatalf("failed to listen: %v", err)
 	}
 	s := grpc.NewServer()
-	helloworldpb.RegisterHelloServiceServer(s, &server{})
-	hipb.RegisterHiServiceServer(s, &server{})
+	helloworldPB.RegisterHelloServiceServer(s, &server{})
+	hiPB.RegisterHiServiceServer(s, &server{})
+	crawlerPB.RegisterCrawlerServiceServer(s, &server{})
 	if err := s.Serve(lis); err != nil {
 		log.Fatalf("failed to serve: %v", err)
 	}
