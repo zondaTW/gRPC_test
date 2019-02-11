@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"context"
 	"log"
 	"net"
@@ -36,9 +35,7 @@ func (s *server) SayHi(ctx context.Context, in *hiPB.HiRequest) (*hiPB.HiReply, 
 func (s *server) GetWeather(ctx context.Context, in *crawlerPB.WeatherRequest) (*crawlerPB.WeatherReply, error) {
 	log.Printf("Received: %v", in.Url)
 	weatherInfoArray := weather.GetWeatherInfo(in.Url)
-	fmt.Printf("Weather Info: %d\n", len(weatherInfoArray))
-	fmt.Println(weatherInfoArray)
-	return &crawlerPB.WeatherReply{Message: "URL: " + in.Url}, nil
+	return &crawlerPB.WeatherReply{Info: weatherInfoArray}, nil
 }
 
 func main() {

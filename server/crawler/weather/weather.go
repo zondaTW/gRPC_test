@@ -5,6 +5,8 @@ import (
 	"strings"
 	"github.com/anaskhan96/soup"
 	"os"
+
+	crawlerPB "../../../pb/crawler"
 )
 
 type weatherInfo struct {
@@ -28,7 +30,7 @@ func zip(lists ...[]soup.Root) func() []soup.Root {
 	}
 }
 
-func GetWeatherInfo(url string) []weatherInfo {
+func GetWeatherInfo(url string) []*crawlerPB.WeatherReply_Info {
 	resp, err := soup.Get(url)
 	if err != nil {
 		fmt.Println("http transport error is:", err)
@@ -49,16 +51,17 @@ func GetWeatherInfo(url string) []weatherInfo {
 	tr = tbody.Find("tr")
 	tds := tr.FindAll("td")
 
-	weatherInfoArray := []weatherInfo{}
+	weatherInfoArray := make([]*crawlerPB.WeatherReply_Info, 0)
 	iter := zip(ths[1:], weather_imgs, tds)
 	for tuple := iter(); tuple != nil; tuple = iter() {
 		temp := strings.Replace(tuple[2].Text(), "\t", "", -1)
+		temp = strings.Replace(temp, "\n", "", -1)
 		temp = strings.Replace(temp, " ", "", -1)
 
-		weatherInfoTemp := weatherInfo{
-			tuple[0].Text(),
-			tuple[1].Attrs()["title"],
-			temp}
+		weatherInfoTemp := &crawlerPB.WeatherReply_Info{
+			Date: tuple[0].Text(),
+			Weather: tuple[1].Attrs()["title"],
+			Temperature: temp}
 		weatherInfoArray = append(weatherInfoArray, weatherInfoTemp)
 	}
 	return weatherInfoArray

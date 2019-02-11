@@ -47,7 +47,12 @@ func getWeather(crawlerConn crawlerPB.CrawlerServiceClient, url string) {
 	if err != nil {
 		log.Fatalf("could not greet: %v", err)
 	}
-	log.Printf("CrawlerService: %s", r.Message)
+	log.Printf("CrawlerService")
+	for _, info := range r.Info {
+		log.Printf("\t %s", info.Date)
+		log.Printf("\t %s", info.Weather)
+		log.Printf("\t %s", info.Temperature)
+	}
 }
 
 func main() {

@@ -11,5 +11,10 @@ message WeatherRequest {
 }
 
 message WeatherReply {
-  string message = 1;
+  message Info {
+    string date = 1;
+    string weather = 2;
+    string temperature = 3;
+  }
+  repeated Info info = 1;
 }
